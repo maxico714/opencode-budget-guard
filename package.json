@@ -44,7 +44,7 @@
     "lint": "oxlint --deny-warnings src test",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.mjs\" \"examples/**/*.mjs\" \"docs/**/*.md\" \"*.md\" \"*.js\"",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.mjs\" \"examples/**/*.mjs\" \"docs/**/*.md\" \"*.md\" \"*.js\"",
-    "test": "tsc -p tsconfig.test.json && node --test \"build-test/test/*.test.js\"",
+    "test": "tsc -p tsconfig.test.json && node scripts/run-tests.mjs",
     "smoke": "node scripts/smoke.mjs",
     "e2e": "node scripts/e2e-mock-provider.mjs",
     "check": "npm run build && npm run typecheck && npm run lint && npm run format:check && npm test && npm run smoke",
