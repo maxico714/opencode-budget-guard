@@ -1,0 +1,25 @@
+// Register the published package with plugin options (OpenCode 2.x).
+// Copy the "plugins" entry into your own opencode.jsonc.
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    {
+      "package": "opencode-budget-guard",
+      "options": {
+        "detectors": {
+          "identical_fail": { "threshold": 3, "window_seconds": 300 },
+          "tool_repeat": { "threshold": 5, "window_seconds": 120 },
+          "oscillation": { "count": 2, "window_seconds": 60 }
+        },
+        "budgets": {
+          "max_tokens_est": 100000,
+          "max_wall_seconds": 3600,
+          "max_consecutive_failures": 5
+        },
+        "on_loop": "warn",
+        "dry_run": false,
+        "report": { "json": ".budget-guard/report.json", "markdown": ".budget-guard/report.md" }
+      }
+    }
+  ]
+}

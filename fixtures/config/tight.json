@@ -1,0 +1,23 @@
+{
+  "detectors": {
+    "tool_repeat": {
+      "threshold": 3
+    },
+    "identical_fail": {
+      "threshold": 2
+    },
+    "oscillation": {
+      "count": 1
+    }
+  },
+  "budgets": {
+    "max_tokens_est": 100000,
+    "max_wall_seconds": 600,
+    "max_consecutive_failures": 3
+  },
+  "on_loop": "kill",
+  "report": {
+    "json": null,
+    "markdown": null
+  }
+}

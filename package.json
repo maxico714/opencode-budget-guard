@@ -1,0 +1,68 @@
+{
+  "name": "opencode-budget-guard",
+  "version": "0.1.0",
+  "description": "Loop detection and hard budget kill-switch for OpenCode sessions (community plugin)",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "budget",
+    "loop-detection",
+    "kill-switch",
+    "guard"
+  ],
+  "bin": {
+    "opencode-budget-guard": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "index.js",
+    "docs/PLUGIN_API.md",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "lint": "oxlint --deny-warnings src test",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.mjs\" \"examples/**/*.mjs\" \"docs/**/*.md\" \"*.md\" \"*.js\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.mjs\" \"examples/**/*.mjs\" \"docs/**/*.md\" \"*.md\" \"*.js\"",
+    "test": "tsc -p tsconfig.test.json && node --test \"build-test/test/*.test.js\"",
+    "smoke": "node scripts/smoke.mjs",
+    "e2e": "node scripts/e2e-mock-provider.mjs",
+    "check": "npm run build && npm run typecheck && npm run lint && npm run format:check && npm test && npm run smoke",
+    "prepublishOnly": "npm run check"
+  },
+  "peerDependencies": {
+    "@opencode/plugin": "^2.1.2"
+  },
+  "peerDependenciesMeta": {
+    "@opencode/plugin": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.1.2",
+    "@types/node": "24.19.2",
+    "oxlint": "1.89.0",
+    "prettier": "3.9.10",
+    "typescript": "5.9.3"
+  }
+}

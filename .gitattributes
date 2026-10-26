@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+*.ts text
+*.mjs text
+*.js text
+*.json text
+*.jsonl text
+*.md text
+*.yml text
+*.yaml text
+
+package-lock.json -diff linguist-generated
+dist/** linguist-generated=true

@@ -1,0 +1,15 @@
+{"type":"model.context","sessionID":"demo-budget","chars":40000,"ts":1700000000000}
+{"type":"tool.start","sessionID":"demo-budget","tool":"read","input":{"filePath":"src/page-0.ts"},"ts":1700000000100}
+{"type":"tool.end","sessionID":"demo-budget","tool":"read","input":{},"status":"completed","ts":1700000000200}
+{"type":"model.context","sessionID":"demo-budget","chars":40000,"ts":1700000001000}
+{"type":"tool.start","sessionID":"demo-budget","tool":"read","input":{"filePath":"src/page-1.ts"},"ts":1700000001100}
+{"type":"tool.end","sessionID":"demo-budget","tool":"read","input":{},"status":"completed","ts":1700000001200}
+{"type":"model.context","sessionID":"demo-budget","chars":40000,"ts":1700000002000}
+{"type":"tool.start","sessionID":"demo-budget","tool":"read","input":{"filePath":"src/page-2.ts"},"ts":1700000002100}
+{"type":"tool.end","sessionID":"demo-budget","tool":"read","input":{},"status":"completed","ts":1700000002200}
+{"type":"model.context","sessionID":"demo-budget","chars":40000,"ts":1700000003000}
+{"type":"tool.start","sessionID":"demo-budget","tool":"read","input":{"filePath":"src/page-3.ts"},"ts":1700000003100}
+{"type":"tool.end","sessionID":"demo-budget","tool":"read","input":{},"status":"completed","ts":1700000003200}
+{"type":"model.context","sessionID":"demo-budget","chars":40000,"ts":1700000004000}
+{"type":"tool.start","sessionID":"demo-budget","tool":"read","input":{"filePath":"src/page-4.ts"},"ts":1700000004100}
+{"type":"tool.end","sessionID":"demo-budget","tool":"read","input":{},"status":"completed","ts":1700000004200}

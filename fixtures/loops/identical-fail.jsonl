@@ -1,0 +1,4 @@
+{"type":"tool.end","sessionID":"demo-identical-fail","tool":"edit","input":{"filePath":"src/missing.ts"},"status":"error","error":"Error: ENOENT: no such file or directory, open 'C:\\work\\src\\missing.ts'","ts":1700000000000}
+{"type":"tool.end","sessionID":"demo-identical-fail","tool":"edit","input":{"filePath":"src/missing.ts"},"status":"error","error":"Error: ENOENT: no such file or directory, open 'C:\\work\\src\\missing.ts'","ts":1700000001000}
+{"type":"tool.end","sessionID":"demo-identical-fail","tool":"edit","input":{"filePath":"src/missing.ts"},"status":"error","error":"Error: ENOENT: no such file or directory, open 'C:\\work\\src\\missing.ts'","ts":1700000002000}
+{"type":"tool.end","sessionID":"demo-identical-fail","tool":"edit","input":{"filePath":"src/missing.ts"},"status":"error","error":"Error: ENOENT: no such file or directory, open 'C:\\work\\src\\missing.ts'","ts":1700000003000}

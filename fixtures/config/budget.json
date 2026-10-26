@@ -1,0 +1,11 @@
+{
+  "budgets": {
+    "max_tokens_est": 20000,
+    "max_wall_seconds": 600,
+    "max_consecutive_failures": 3
+  },
+  "report": {
+    "json": null,
+    "markdown": null
+  }
+}

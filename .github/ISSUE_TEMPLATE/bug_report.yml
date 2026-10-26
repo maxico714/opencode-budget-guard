@@ -1,0 +1,52 @@
+name: Bug report
+description: Something behaved incorrectly — a missed loop, a false stop, a bad report.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. For anything security-sensitive, use the private
+        "Report a vulnerability" form on the Security tab instead.
+  - type: input
+    id: version
+    attributes:
+      label: opencode-budget-guard version
+      description: Output of `opencode-budget-guard --version`
+    validations:
+      required: true
+  - type: input
+    id: opencode
+    attributes:
+      label: OpenCode version and OS
+      placeholder: OpenCode 2.1.2, Windows 10 26200
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Effective configuration
+      description: The `options` block (redact anything sensitive) and whether `dry_run` was set.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Include the report file contents if one was written, and any `[budget-guard]` log lines.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: |
+        A JSONL fixture reproduced with `opencode-budget-guard replay` is ideal. Remove prompts and
+        sensitive paths from `input`; the guard only hashes it.
+      render: shell

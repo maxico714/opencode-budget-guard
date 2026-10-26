@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a detector, budget, report field or configuration change.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: The loop or cost pattern that is not caught today, with evidence if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the guard do, and with which defaults? Keep detectors bounded and offline.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Configuration, a different detector, or an upstream OpenCode feature.
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: This keeps runtime dependencies at zero
+        - label: This works offline and adds no telemetry
+        - label: This does not put prompts or tool output into reports
