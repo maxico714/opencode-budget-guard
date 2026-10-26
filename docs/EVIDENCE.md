@@ -56,6 +56,7 @@ Two of these surfaced only by running the real binary, not by reading types:
 | Packaging      | `npm pack`, `npm publish --dry-run`                  | tarball 35.4 kB, 63 files, `prepublishOnly` check passes                                                                             |
 | Secrets        | `detect-secrets scan` over the tree                  | 0 findings (recorded in the commit note)                                                                                             |
 | L4             | fresh copy → `npm ci` → `npm run check`              | green (see PROGRESS note)                                                                                                            |
+| CI             | GitHub Actions run `40303244380`                     | 6/6 jobs green: Ubuntu + Windows × Node 20/22/24                                                                                     |
 
 L3 report captured during the run:
 
