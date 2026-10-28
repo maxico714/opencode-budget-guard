@@ -50,6 +50,13 @@ describe("resolveConfig", () => {
     ["null budget object", { budgets: null }, "must be an object"],
     ["report path number", { report: { json: 7 } }, "non-empty string or null"],
     ["absolute report path", { report: { json: "/tmp/report.json" } }, "must be a relative path"],
+    ["parent report path", { report: { json: "../report.json" } }, "must stay inside the session directory"],
+    ["bare parent report path", { report: { markdown: ".." } }, "must stay inside the session directory"],
+    [
+      "nested parent report path",
+      { report: { json: "a/../../report.json" } },
+      "must stay inside the session directory",
+    ],
     ["empty report path", { report: { markdown: "  " } }, "non-empty string or null"],
   ];
 

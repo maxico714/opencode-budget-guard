@@ -2,6 +2,7 @@ import { ConfigError, resolveConfig, type GuardConfig } from "./config.js";
 import { Guard } from "./guard.js";
 import { writeReportsSync } from "./report.js";
 import type { Decision, GuardEvent, SessionReport } from "./types.js";
+import { stableStringify } from "./util.js";
 
 export interface HostToolEvent {
   readonly tool: string;
@@ -62,11 +63,13 @@ function defaultLog(level: LogLevel, message: string): void {
 }
 
 function payloadChars(event: HostContextEvent): number {
+  const payload = [event.system ?? null, event.messages ?? null];
   try {
-    const text = JSON.stringify([event.system ?? null, event.messages ?? null]);
+    const text = JSON.stringify(payload);
     return typeof text === "string" ? text.length : 0;
   } catch {
-    return 0;
+    // Circular/BigInt payloads must still contribute to the token estimate.
+    return stableStringify(payload).length;
   }
 }
 

@@ -169,7 +169,22 @@ describe("hostile event streams", () => {
       await writeFile(events, Buffer.from([0x7b, 0xff, 0xfe, 0x7d, 0x0a]));
       const result = await run(["replay", "--events", events]);
       assert.equal(result.code, EXIT_INPUT);
-      assert.match(result.err, /line 1 is not valid JSON/);
+      assert.match(result.err, /line 1 is not valid UTF-8/);
+    } finally {
+      await removeDir(dir);
+    }
+  });
+
+  it("rejects invalid UTF-8 inside a JSON string instead of replacing it", async () => {
+    const dir = await tempDir("guard-bytes-string-");
+    try {
+      const events = join(dir, "bytes.jsonl");
+      const prefix = Buffer.from('{"type":"tool.start","sessionID":"s', "utf8");
+      const suffix = Buffer.from(`","tool":"read","input":{},"ts":${T0}}\n`, "utf8");
+      await writeFile(events, Buffer.concat([prefix, Buffer.from([0xff]), suffix]));
+      const result = await run(["replay", "--events", events]);
+      assert.equal(result.code, EXIT_INPUT);
+      assert.match(result.err, /line 1 is not valid UTF-8/);
     } finally {
       await removeDir(dir);
     }

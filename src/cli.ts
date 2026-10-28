@@ -2,7 +2,6 @@
 import { access, constants, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { createInterface } from "node:readline";
 import { pathToFileURL } from "node:url";
 
 import { ConfigError, resolveConfig, type GuardConfig } from "./config.js";
@@ -222,44 +221,87 @@ interface ReplayResult {
   readonly events: number;
 }
 
+/**
+ * Stream UTF-8 lines without Node's replacement decoding: invalid bytes must be an
+ * input error, not silently turned into U+FFFD inside a JSON string.
+ */
+async function* readEventLines(path: string): AsyncGenerator<string> {
+  const stream = createReadStream(path);
+  const decoder = new TextDecoder("utf-8", { fatal: true });
+  let parts: Buffer[] = [];
+  let bytes = 0;
+  let lineNumber = 0;
+  const decode = (buffer: Buffer, number: number): string => {
+    try {
+      return decoder.decode(buffer);
+    } catch {
+      throw new UsageError(`line ${number} is not valid UTF-8`);
+    }
+  };
+  try {
+    for await (const chunk of stream as AsyncIterable<Buffer>) {
+      let start = 0;
+      for (let index = 0; index < chunk.length; index += 1) {
+        if (chunk[index] !== 0x0a) continue;
+        const part = chunk.subarray(start, index);
+        bytes += part.length;
+        lineNumber += 1;
+        if (bytes > MAX_LINE_BYTES) {
+          throw new UsageError(`line ${lineNumber} exceeds ${MAX_LINE_BYTES} bytes`);
+        }
+        parts.push(part);
+        const buffer = Buffer.concat(parts, bytes);
+        parts = [];
+        bytes = 0;
+        start = index + 1;
+        yield decode(buffer, lineNumber);
+      }
+      const rest = chunk.subarray(start);
+      if (rest.length > 0) {
+        bytes += rest.length;
+        if (bytes > MAX_LINE_BYTES) {
+          throw new UsageError(`line ${lineNumber + 1} exceeds ${MAX_LINE_BYTES} bytes`);
+        }
+        parts.push(rest);
+      }
+    }
+    if (bytes > 0) {
+      lineNumber += 1;
+      yield decode(Buffer.concat(parts, bytes), lineNumber);
+    }
+  } finally {
+    stream.destroy();
+  }
+}
+
 async function replayEvents(eventsPath: string, config: GuardConfig, io: CliIO): Promise<ReplayResult> {
   const guard = new Guard(config);
   let triggered = false;
   let events = 0;
-  const stream = createReadStream(eventsPath, { encoding: "utf8" });
-  const lines = createInterface({ input: stream, crlfDelay: Infinity });
   let lineNumber = 0;
-  try {
-    for await (const line of lines) {
-      lineNumber += 1;
-      if (line.trim() === "") continue;
-      if (Buffer.byteLength(line, "utf8") > MAX_LINE_BYTES) {
-        throw new UsageError(`line ${lineNumber} exceeds ${MAX_LINE_BYTES} bytes`);
-      }
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(line);
-      } catch (error) {
-        throw new UsageError(
-          `line ${lineNumber} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-      let decision;
-      try {
-        decision = guard.ingest(parsed);
-      } catch (error) {
-        if (error instanceof EventError) throw new UsageError(`line ${lineNumber}: ${error.message}`);
-        throw error;
-      }
-      events += 1;
-      if (decision.action === "kill") triggered = true;
-      if (decision.action === "warn") {
-        for (const hit of decision.hits) io.err(`warning: ${hit.detector}: ${hit.detail}\n`);
-      }
+  for await (const line of readEventLines(eventsPath)) {
+    lineNumber += 1;
+    if (line.trim() === "") continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(line);
+    } catch (error) {
+      throw new UsageError(
+        `line ${lineNumber} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
-  } finally {
-    lines.close();
-    stream.destroy();
+    let decision;
+    try {
+      decision = guard.ingest(parsed);
+    } catch (error) {
+      if (error instanceof EventError) throw new UsageError(`line ${lineNumber}: ${error.message}`);
+      throw error;
+    }
+    events += 1;
+    if (decision.action === "kill") triggered = true;
+    if (decision.action === "warn") {
+      for (const hit of decision.hits) io.err(`warning: ${hit.detector}: ${hit.detail}\n`);
+    }
   }
   return { reports: guard.snapshotAll(), triggered, events };
 }
@@ -302,6 +344,21 @@ async function replay(flags: ParsedArgs["flags"], io: CliIO): Promise<number> {
     throw error;
   }
 
+  if (markdownTarget !== null) {
+    const target = resolve(process.cwd(), markdownTarget);
+    try {
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, result.reports.map(reportToMarkdown).join("\n"), "utf8");
+    } catch (error) {
+      io.err(
+        `input error: cannot write markdown report '${target}': ${error instanceof Error ? error.message : String(error)}\n`,
+      );
+      return EXIT_INPUT;
+    }
+    const message = `markdown: ${target}\n`;
+    if (json) io.err(message);
+    else io.out(message);
+  }
   if (json) {
     io.out(`${JSON.stringify({ schema_version: "1", reports: result.reports }, null, 2)}\n`);
   } else {
@@ -309,12 +366,6 @@ async function replay(flags: ParsedArgs["flags"], io: CliIO): Promise<number> {
     io.out(`events: ${result.events}, sessions: ${result.reports.length}\n`);
     for (const report of result.reports) io.out(formatSummary(report));
     io.out(result.triggered ? "guard triggered\n" : "no trigger\n");
-  }
-  if (markdownTarget !== null) {
-    const target = resolve(process.cwd(), markdownTarget);
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, result.reports.map(reportToMarkdown).join("\n"), "utf8");
-    io.out(`markdown: ${target}\n`);
   }
   return result.triggered ? EXIT_TRIGGERED : EXIT_OK;
 }
@@ -330,7 +381,7 @@ export async function main(argv: readonly string[], io: CliIO = defaultIO): Prom
     }
     throw error;
   }
-  if (parsed.flags.get("help") === true && parsed.command === null) {
+  if (parsed.flags.get("help") === true) {
     io.out(USAGE);
     return EXIT_OK;
   }

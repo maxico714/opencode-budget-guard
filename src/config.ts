@@ -1,4 +1,4 @@
-import { isAbsolute } from "node:path";
+import { isAbsolute, normalize, sep } from "node:path";
 
 export interface DetectorConfig {
   readonly enabled: boolean;
@@ -148,6 +148,10 @@ function readReport(value: Json, fallback: ReportConfig, path: string): ReportCo
       throw new ConfigError("must be a non-empty string or null", itemPath);
     }
     if (isAbsolute(item)) throw new ConfigError("must be a relative path", itemPath);
+    const normalized = normalize(item);
+    if (normalized === "." || normalized === ".." || normalized.startsWith(`..${sep}`)) {
+      throw new ConfigError("must stay inside the session directory", itemPath);
+    }
     return item;
   };
   return {

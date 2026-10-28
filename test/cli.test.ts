@@ -41,6 +41,12 @@ describe("CLI basics", () => {
     assert.match(result.out, /Exit codes:/);
   });
 
+  it("prints usage with --help after a command", async () => {
+    const result = await run(["replay", "--help"]);
+    assert.equal(result.code, EXIT_OK);
+    assert.match(result.out, /Usage:/);
+  });
+
   it("prints the version with --version", async () => {
     const result = await run(["--version"]);
     assert.equal(result.code, EXIT_OK);
@@ -112,6 +118,19 @@ describe("doctor", () => {
       const result = await run(["doctor", "--config", configPath]);
       assert.equal(result.code, EXIT_CONFIG);
       assert.match(result.err, /not valid JSON/);
+    } finally {
+      await removeDir(dir);
+    }
+  });
+
+  it("exits 1 for a report path that escapes the session directory", async () => {
+    const dir = await tempDir();
+    try {
+      const configPath = join(dir, "bad.json");
+      await writeFile(configPath, JSON.stringify({ report: { json: "../escape.json" } }), "utf8");
+      const result = await run(["doctor", "--config", configPath]);
+      assert.equal(result.code, EXIT_CONFIG);
+      assert.match(result.err, /must stay inside the session directory/);
     } finally {
       await removeDir(dir);
     }
@@ -252,6 +271,36 @@ describe("replay", () => {
       assert.equal(result.code, EXIT_OK);
       const markdown = await readFile(markdownPath, "utf8");
       assert.match(markdown, /# Budget guard report — s/);
+    } finally {
+      await removeDir(dir);
+    }
+  });
+
+  it("keeps JSON output parseable when also writing markdown", async () => {
+    const dir = await tempDir();
+    try {
+      const eventsPath = join(dir, "events.jsonl");
+      const markdownPath = join(dir, "report.md");
+      await writeFile(eventsPath, cleanEvents, "utf8");
+      const result = await run(["replay", "--events", eventsPath, "--json", "--markdown", markdownPath]);
+      assert.equal(result.code, EXIT_OK);
+      const parsed = JSON.parse(result.out) as { reports: SessionReport[] };
+      assert.equal(parsed.reports.length, 1);
+      assert.match(result.err, /markdown:/);
+      await readFile(markdownPath, "utf8");
+    } finally {
+      await removeDir(dir);
+    }
+  });
+
+  it("exits 2 instead of throwing when the markdown target is a directory", async () => {
+    const dir = await tempDir();
+    try {
+      const eventsPath = join(dir, "events.jsonl");
+      await writeFile(eventsPath, cleanEvents, "utf8");
+      const result = await run(["replay", "--events", eventsPath, "--markdown", dir]);
+      assert.equal(result.code, EXIT_INPUT);
+      assert.match(result.err, /cannot write markdown report/);
     } finally {
       await removeDir(dir);
     }

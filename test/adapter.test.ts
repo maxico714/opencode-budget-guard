@@ -163,6 +163,28 @@ describe("attach", () => {
     }
   });
 
+  it("still enforces the token budget for circular context payloads", async () => {
+    const dir = await tempDir();
+    try {
+      const host = makeHost(dir, {
+        budgets: { max_tokens_est: 0 },
+        report: { json: "guard.json", markdown: null },
+      });
+      const attached = attach(host, { now: () => T0, log: () => {} });
+      await attached.ready;
+      const messages: Record<string, unknown> = { role: "user" };
+      messages.self = messages;
+      await host.fire("context", { sessionID: "s", messages, system: [] });
+      assert.deepEqual(host.interrupts, ["s"]);
+      await attached.cleanup();
+      const report = JSON.parse(await readFile(join(dir, "guard.json"), "utf8")) as SessionReport;
+      assert.equal(report.stopped, true);
+      assert.ok(report.tokens_est.value > 0);
+    } finally {
+      await removeDir(dir);
+    }
+  });
+
   it("logs an error when interruption fails", async () => {
     const dir = await tempDir();
     try {
